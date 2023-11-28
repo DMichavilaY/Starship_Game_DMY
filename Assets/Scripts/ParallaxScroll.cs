@@ -2,34 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ParallaxScroll : MonoBehaviour
+public class Parallax : MonoBehaviour
 {
-    public float backgroundSize = 15f;
-    public Transform player;
-    public float repeatThreshold = 0.8f;
+    public Vector2 parallaxEffectMultiplier = new Vector2(0.5f, 0.5f);
+    public Transform cam;
+    private Vector3 previousCamPos;
 
-    void Update()
+    private void Start()
     {
-        if (Mathf.Abs(player.position.x) > backgroundSize * 0.5f * repeatThreshold)
-        {
-            RepositionBackgroundX();
-        }
-
-        if (Mathf.Abs(player.position.y) > backgroundSize * 0.5f * repeatThreshold)
-        {
-            RepositionBackgroundY();
-        }
+        cam = Camera.main.transform;
+        previousCamPos = cam.position;
     }
 
-    private void RepositionBackgroundX()
+    private void Update()
     {
-        float newX = Mathf.Floor(player.position.x / backgroundSize) * backgroundSize;
-        transform.position = new Vector3(newX, transform.position.y, transform.position.z);
-    }
+        Vector2 parallax = (previousCamPos - cam.position) * parallaxEffectMultiplier;
+        Vector3 backgroundTargetPos = new Vector3(transform.position.x + parallax.x, transform.position.y + parallax.y, transform.position.z);
 
-    private void RepositionBackgroundY()
-    {
-        float newY = Mathf.Floor(player.position.y / backgroundSize) * backgroundSize;
-        transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+        transform.position = Vector3.Lerp(transform.position, backgroundTargetPos, Time.deltaTime * 5f);
+
+        previousCamPos = cam.position;
     }
 }
