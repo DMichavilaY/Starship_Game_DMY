@@ -10,7 +10,7 @@ public class MovementLimites : MonoBehaviour
 
     public float rotationSpeed = 0f; // Velocidad de rotación suave
     public AnimationCurve curve;
-
+    [SerializeField] private ParticleSystem particulas;
     void Start()
     {
         currentSpeed = normalSpeed;
@@ -42,6 +42,7 @@ public class MovementLimites : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift))
         {
             currentSpeed = normalSpeed * turboSpeedMultiplier;
+            particulas.Play();
         }
         else
         {
