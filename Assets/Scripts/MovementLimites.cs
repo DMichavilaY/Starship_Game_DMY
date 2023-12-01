@@ -7,10 +7,16 @@ public class MovementLimites : MonoBehaviour
     public float normalSpeed = 0f;
     public float turboSpeedMultiplier = 0f;
     private float currentSpeed;
+    public GameObject proyectilPrefab;
+    public float frecuenciaDisparo = 0.5f;
+    public float velocidadProyectil = 10f;
+    public float distanciaDisparo = 10f;
+    public float tiempoDestruccionProyectil = 5f;
+    private float tiempoUltimoDisparo;
+
 
     public float rotationSpeed = 0f; // Velocidad de rotación suave
     public AnimationCurve curve;
-    [SerializeField] private ParticleSystem particulas;
     void Start()
     {
         currentSpeed = normalSpeed;
@@ -28,7 +34,7 @@ public class MovementLimites : MonoBehaviour
         Vector3 movementVector = inputVector * currentSpeed * Time.deltaTime;
 
         // Movimiento de la nave
-        transform.position = new Vector3(Mathf.Clamp(transform.position.x + movementVector.x, -530, 530), Mathf.Clamp(transform.position.y + movementVector.z, -350, 350), 0);
+        transform.position = new Vector3(Mathf.Clamp(transform.position.x + movementVector.x, -400, 400), Mathf.Clamp(transform.position.y + movementVector.z, -400, 400), 0);
 
         // Rotación de la nave gradual
         if (inputVector != Vector3.zero)
@@ -42,11 +48,43 @@ public class MovementLimites : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift))
         {
             currentSpeed = normalSpeed * turboSpeedMultiplier;
-            particulas.Play();
         }
         else
         {
             currentSpeed = normalSpeed;
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Disparar();
+        }
     }
+
+    // Método para el disparo del proyectil
+    private void Disparar()
+    {
+        if (Time.time > tiempoUltimoDisparo + frecuenciaDisparo)
+        {
+            tiempoUltimoDisparo = Time.time;
+
+            // Obtiene la posición de disparo (10 unidades desde la nave en la dirección hacia adelante)
+            Vector3 posicionDisparo = transform.position + transform.up * distanciaDisparo;
+
+            // Instancia el proyectil en la posición de disparo y con la rotación de la nave
+            GameObject nuevoProyectil = Instantiate(proyectilPrefab, posicionDisparo, transform.rotation);
+
+            // Accede al Rigidbody2D del proyectil
+            Rigidbody2D rbProyectil = nuevoProyectil.GetComponent<Rigidbody2D>();
+            if (rbProyectil != null)
+            {
+                // Aplica una velocidad al proyectil en la dirección de la nave
+                rbProyectil.velocity = transform.up * velocidadProyectil;
+            }
+
+            // Destruye el proyectil después de cierto tiempo
+            Destroy(nuevoProyectil, tiempoDestruccionProyectil);
+        }
+    }
+
+
 }
