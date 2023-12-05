@@ -7,16 +7,10 @@ public class MovementLimites : MonoBehaviour
     public float normalSpeed = 0f;
     public float turboSpeedMultiplier = 0f;
     private float currentSpeed;
-    public GameObject proyectilPrefab;
-    public float frecuenciaDisparo = 0.5f;
-    public float velocidadProyectil = 10f;
-    public float distanciaDisparo = 10f;
-    public float tiempoDestruccionProyectil = 5f;
-    private float tiempoUltimoDisparo;
-
-
     public float rotationSpeed = 0f; // Velocidad de rotación suave
     public AnimationCurve curve;
+    public GameObject rocketPrefab;
+
     void Start()
     {
         currentSpeed = normalSpeed;
@@ -54,37 +48,24 @@ public class MovementLimites : MonoBehaviour
             currentSpeed = normalSpeed;
         }
 
+        // Generar cohete al presionar la tecla Space
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Disparar();
+            GenerateRocket();
         }
     }
 
-    // Método para el disparo del proyectil
-    private void Disparar()
+    // Método para generar el cohete
+    void GenerateRocket(Vector3 direction)
     {
-        if (Time.time > tiempoUltimoDisparo + frecuenciaDisparo)
+        if (rocketPrefab != null)
         {
-            tiempoUltimoDisparo = Time.time;
-
-            // Obtiene la posición de disparo (10 unidades desde la nave en la dirección hacia adelante)
-            Vector3 posicionDisparo = transform.position + transform.up * distanciaDisparo;
-
-            // Instancia el proyectil en la posición de disparo y con la rotación de la nave
-            GameObject nuevoProyectil = Instantiate(proyectilPrefab, posicionDisparo, transform.rotation);
-
-            // Accede al Rigidbody2D del proyectil
-            Rigidbody2D rbProyectil = nuevoProyectil.GetComponent<Rigidbody2D>();
-            if (rbProyectil != null)
+            GameObject rocket = Instantiate(rocketPrefab, transform.position, transform.rotation);
+            RocketMovement rocketMovement = rocket.GetComponent<RocketMovement>();
+            if (rocketMovement != null)
             {
-                // Aplica una velocidad al proyectil en la dirección de la nave
-                rbProyectil.velocity = transform.up * velocidadProyectil;
+                rocketMovement.SetInitialMovement(direction);
             }
-
-            // Destruye el proyectil después de cierto tiempo
-            Destroy(nuevoProyectil, tiempoDestruccionProyectil);
         }
     }
-
-
 }
