@@ -9,7 +9,6 @@ public class MovementLimites : MonoBehaviour
     private float currentSpeed;
     public float rotationSpeed = 0f; // Velocidad de rotación suave
     public AnimationCurve curve;
-    public GameObject rocketPrefab;
 
     void Start()
     {
@@ -48,24 +47,5 @@ public class MovementLimites : MonoBehaviour
             currentSpeed = normalSpeed;
         }
 
-        // Generar cohete al presionar la tecla Space
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            GenerateRocket();
-        }
-    }
-
-    // Método para generar el cohete
-    void GenerateRocket(Vector3 direction)
-    {
-        if (rocketPrefab != null)
-        {
-            GameObject rocket = Instantiate(rocketPrefab, transform.position, transform.rotation);
-            RocketMovement rocketMovement = rocket.GetComponent<RocketMovement>();
-            if (rocketMovement != null)
-            {
-                rocketMovement.SetInitialMovement(direction);
-            }
-        }
     }
 }

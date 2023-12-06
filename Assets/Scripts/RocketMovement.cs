@@ -4,39 +4,139 @@ using UnityEngine;
 
 public class RocketMovement : MonoBehaviour
 {
+    public GameObject rocketPrefab;
     public float rocketSpeed = 5f;
-    public float destroyAfterSeconds = 5f;
-    private float timer = 0f;
+    public float rocketLifetime = 5f;
+    public float rocketDistance = 5f;
+    public AudioClip shootSound; // Agrega el AudioClip desde el inspector
 
-    private Rigidbody rb;
+    private AudioSource audioSource;
+    private bool isGamePaused = false;
 
-    // Método para configurar el movimiento inicial del cohete con una dirección específica
-    public void SetInitialMovement(Vector3 direction)
+    private Vector3 rocketOffset;
+    private GameObject rocket;
+
+    public AudioClip musicaFondo; // Agrega el AudioClip desde el inspector
+
+    private AudioSource sountrackSource;
+    private AudioLowPassFilter lowPassFilter;
+    public GameObject pauseMessage; // Objeto que muestra el mensaje de pausa
+
+    void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        if (rb != null)
+        audioSource = GetComponent<AudioSource>(); // Obtener el componente AudioSource
+        lowPassFilter = GetComponent<AudioLowPassFilter>(); // Obtener el componente AudioLowPassFilter
+
+        // Desactivar el mensaje de pausa al inicio del juego
+        if (pauseMessage != null)
         {
-            rb.velocity = direction.normalized * rocketSpeed;
-            rb.useGravity = false; // Desactivar la gravedad
+            pauseMessage.SetActive(false);
+        }
+
+        if (audioSource != null && musicaFondo != null)
+        {
+            sountrackSource = gameObject.AddComponent<AudioSource>(); // Añadir un nuevo AudioSource para la música de fondo
+            sountrackSource.clip = musicaFondo; // Establecer el AudioClip
+            sountrackSource.loop = true; // Repetir la música en bucle
+            sountrackSource.Play(); // Reproducir la música al iniciar la escena
         }
     }
 
     void Update()
     {
-        // Destruir el cohete después de un tiempo determinado
-        timer += Time.deltaTime;
-        if (timer >= destroyAfterSeconds)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Destroy(gameObject);
+            isGamePaused = !isGamePaused;
+
+            if (isGamePaused)
+            {
+                PausarJuego();
+            }
+            else
+            {
+                ContinuarJuego();
+            }
+        }
+
+        if (!isGamePaused && Input.GetKeyDown(KeyCode.Space))
+        {
+            LaunchRocket();
+            PlayShootSound();
         }
     }
 
-    // Lógica de autodestrucción al alcanzar un límite (en este ejemplo, se autodestruye al llegar a Y = 10)
-    private void FixedUpdate()
+    void LaunchRocket()
     {
-        if (transform.position.y >= 10f)
+        // Obtener la posición de la punta de la nave y ajustar con rocketOffset
+        Vector3 spawnPosition = transform.position + transform.forward * rocketDistance + rocketOffset;
+        Quaternion spawnRotation = transform.rotation;
+
+        // Instanciar el cohete
+        rocket = Instantiate(rocketPrefab, spawnPosition, spawnRotation);
+
+        // Obtener la dirección hacia la cual se moverá el cohete
+        Vector3 rocketDirection = rocket.transform.right;
+
+        // Iniciar el movimiento del cohete
+        StartCoroutine(MoveRocket(rocket, rocketDirection));
+    }
+
+    IEnumerator MoveRocket(GameObject rocketObj, Vector3 direction)
+    {
+        float elapsedTime = 0f;
+
+        while (elapsedTime < rocketLifetime)
         {
-            Destroy(gameObject);
+            if (!isGamePaused && rocketObj != null)
+            {
+                rocketObj.transform.position += direction * rocketSpeed * Time.deltaTime;
+                elapsedTime += Time.deltaTime;
+            }
+
+            yield return null;
+        }
+
+        if (rocketObj != null)
+        {
+            Destroy(rocketObj);
+        }
+    }
+
+    void PlayShootSound()
+    {
+        if (audioSource != null && shootSound != null)
+        {
+            audioSource.PlayOneShot(shootSound); // Reproducir el sonido del disparo
+        }
+    }
+
+    void PausarJuego()
+    {
+        Time.timeScale = 0f;
+        if (lowPassFilter != null)
+        {
+            lowPassFilter.enabled = true; // Habilitar el filtro LowPass al pausar el juego
+        }
+
+        // Mostrar el mensaje de pausa
+        if (pauseMessage != null)
+        {
+            pauseMessage.SetActive(true);
+        }
+    }
+
+    void ContinuarJuego()
+    {
+        Time.timeScale = 1f;
+        if (lowPassFilter != null)
+        {
+            lowPassFilter.enabled = false; // Deshabilitar el filtro LowPass al reanudar el juego
+        }
+
+        // Ocultar el mensaje de pausa
+        if (pauseMessage != null)
+        {
+            pauseMessage.SetActive(false);
         }
     }
 }
